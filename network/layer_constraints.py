@@ -14,7 +14,7 @@ import types
 
 
 
-class LayerConstraints:
+class LayerConstraints( object ):
 	def __init__( self, receptive_field_size, 
 		width, height, identity, channels, regular_weight_init_range, 
 		bias_weight_init_range, super_type, sub_type = NoSubtype() ):

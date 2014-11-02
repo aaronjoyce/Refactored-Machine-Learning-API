@@ -14,7 +14,6 @@ class EdgeGroup:
 		self.x_dimension = x_dimension
 		self.y_dimension = y_dimension
 
-
 		self.edges = None
 		self.gradients = None
 
@@ -22,6 +21,10 @@ class EdgeGroup:
 		self.edges = np.matrix( np.random.uniform( 
 			self.range[0], self.range[1], self.x_dimension * self.y_dimension 
 			).reshape( self.x_dimension, self.y_dimension ) )
+
+	def initialise( self ):
+		self.edges = np.matrix( np.random.uniform( 
+			self.range[0], self.range[1], self.x_dimension * self.y_dimension ) )
 
 
 	def get_edges( self ):
