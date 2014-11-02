@@ -20,13 +20,10 @@ class Layer( object ):
 		self.rfs = rfs
 		self.regular_weights = []
 		self.bias_weights = []
-		self.regular_activations = []
-		self.bias_activations = []
-		self.indices = None
+		self.regular_activations = {}
+		self.bias_activations = {}
 
 	def assemble_layer( self ):
-		print( "assemble_layer invoked" )
-		print( "self.channels: " + str( self.channels ) )
 		for channel in range( self.channels ):
 			self.regular_weights.append( EdgeGroup( self.regular_weight_init_range, 
 				self.layer_width * self.layer_height, self.DEFAULT_Y_DIMENSION ) )
@@ -41,12 +38,12 @@ class Layer( object ):
 	def get_channels( self ):
 		return self.channels
 
-	def set_channels( self, chanenls ):
+	def set_channels( self, channels ):
 		self.channels = channels
 
-	def get_indices_model( self ):
-		return np.arange( self.input_width * self.input_height 
-			).reshape( self.input_height, self.input_width )
+	def get_indices_model( self, channel ):
+		return np.arange( channel, self.input_width * self.input_height * self.channels, 
+			self.channels ).reshape( self.input_height, self.input_width )
 
 	def get_height( self ):
 		return self.layer_height
@@ -91,7 +88,7 @@ class Layer( object ):
 		self.bias_weight_init_range = weight_range
 
 	def set_regular_activations( self, activations, channel ):
-		self.regular_activations = activations
+		self.regular_activations[channel] = activations
 
 	def set_bias_activations( self, activations, channel ):
 		self.bias_activations = activations
@@ -103,8 +100,7 @@ class Layer( object ):
 		return self.bias_activations[ channel ]
 
 	def get_regular_weights( self, channel ):
-		print( "channel: " + str( channel ) )
-		return self.regular_weights[ channel ]
+		return self.regular_weights[ channel ].get_edges()
 
 	def get_bias_weights( self, channel ):
 		return self.bias_weights[ channel ]
@@ -114,9 +110,6 @@ class Layer( object ):
 
 	def set_bias_weights( self, weights, channel ):
 		self.bias_weights[ channel ] = weights
-
-	def set_indices( self, indices ):
-		self.indices = indices
 
 	def get_rfs( self ):
 		return self.rfs
@@ -132,6 +125,10 @@ class InputLayer( Layer ):
 		super(InputLayer, self ).__init__( identity, input_width, 
 			input_height, layer_width, layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, biases )
+
+	def get_indices_model( self, channel ):
+		return np.arange( channel, self.layer_width * self.layer_height * self.channels, 
+			self.channels ).reshape( self.layer_height, self.layer_width )
 		
 
 class ConvolutionalLayer( Layer ):
