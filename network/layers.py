@@ -42,8 +42,12 @@ class Layer( object ):
 		self.channels = channels
 
 	def get_indices_model( self, channel ):
-		return np.arange( channel, self.input_width * self.input_height * self.channels, 
-			self.channels ).reshape( self.input_height, self.input_width )
+		if ( channel != None ):
+			return np.arange( channel, self.input_width * self.input_height * self.channels, 
+				self.channels ).reshape( self.input_height, self.input_width )
+		else:
+			return np.arange( self.input_height * self.input_width ).reshape( 
+				self.input_height, self.input_width)
 
 	def get_height( self ):
 		return self.layer_height
@@ -127,8 +131,12 @@ class InputLayer( Layer ):
 			bias_weight_init_range, biases )
 
 	def get_indices_model( self, channel ):
-		return np.arange( channel, self.layer_width * self.layer_height * self.channels, 
-			self.channels ).reshape( self.layer_height, self.layer_width )
+		if ( channel != None ):
+			return np.arange( channel, self.layer_width * self.layer_height * self.channels, 
+				self.channels ).reshape( self.layer_height, self.layer_width )
+		else:
+			return np.arange( self.layer_width * self.height ).reshape( 
+				self.layer_height, self.layer_width )
 		
 
 class ConvolutionalLayer( Layer ):

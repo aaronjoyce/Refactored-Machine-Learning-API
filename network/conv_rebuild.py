@@ -133,7 +133,7 @@ class ConvolutionalNetwork:
 				computed_activations = [np.empty(( self.layers[layer].get_height() * self.layers[layer].get_width(),
 					np.shape( inputs )[1] ))] * self.layers[layer].get_channels()
 				for channel in range( self.layers[layer].get_channels() ):
-					indices = self.layers[layer].get_indices_model( channel )
+					indices = self.layers[layer].get_indices_model( None )
 					
 					for row, col in self.iterate_over_input_groups( 0, 
 						self.layers[layer].get_input_width(), 
@@ -149,10 +149,6 @@ class ConvolutionalNetwork:
 								np.take( self.layers[layer].get_regular_weights( channel ), 
 									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 					self.layers[layer].set_regular_activations( computed_activations[channel], channel )
-					
-
-		
-
 
 
 	def iterate_over_input_groups( self, start, input_width, input_height, rfs ):
@@ -183,12 +179,12 @@ if __name__ == "__main__":
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
 		1 : { ConvolutionalType() : 2 }, 2 : { MaxPoolingType() : 4 }, 
 		3 : { FullyConnectedType() : 1 } }
-	input_layer_width = 7
-	input_layer_height = 7
-	instances_per_batch = 4
+	input_layer_width = 9
+	input_layer_height = 9
+	instances_per_batch = 12
 	regular_weight_init_range = [0.1,0.2]
 	bias_weight_init_range = [0.1,0.2]
-	channels = 3
+	channels = 7
 
 	# returns a one-dimensional key-value dict. 
 	layer_configurations = generate_layer_configurations( 
@@ -205,17 +201,17 @@ if __name__ == "__main__":
 		inputs[i].fill( i + 1 )
 	network.hypothesis( inputs )
 
-
-	"""	
+	
 	for layer in range( len( network.get_layers() ) ):
-		print( "layer: " + str( layer ) )
+		for channel in range( network.get_layers()[layer].get_channels() ):
+			if layer != 0:
+				print( "activations[channel].get_regular_activations( channel ): " + str( 
+					network.get_layers()[layer].get_regular_activations( channel ) ) )
 		print( "layer height: " + str( network.get_layers()[layer].get_height() ) )
 		print( "layer width: " + str( network.get_layers()[layer].get_width() ) )
-		if ( layer != 0 ):
-			print( "regular weights: " + str( network.get_layers()[layer].get_regular_weights(0).get_edges() ) )
-		print( "\n\n" ) 
-	"""
 
+
+	
 
 
 
