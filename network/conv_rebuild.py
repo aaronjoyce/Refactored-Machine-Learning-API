@@ -37,12 +37,13 @@ class ConvolutionalNetwork:
 				InputType ) ):
 				self.layers.append( InputLayer(self.layer_constraints[layer].get_identity(), 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(), 
-					self.layer_constraints[ layer ].get_channels(), self.layer_constraints[layer] ) )
+					self.layer_constraints[ layer ].get_channels(), self.layer_constraints[layer].get_receptive_field_size() ) )
 			elif ( isinstance( self.layer_constraints[layer].get_super_type(), 
 				ConvolutionalType ) ):
 				self.layers.append( ConvolutionalLayer(self.layer_constraints[layer].get_identity(), 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(), 
 					self.layer_constraints[ layer ].get_channels(),
+					self.layer_constraints[layer].get_receptive_field_size(),
 					self.layer_constraints[layer].get_regular_weight_init_range(), 
 					self.layer_constraints[layer].get_bias_weight_init_range(), 
 					self.layers[ len( self.layers ) - 1 ].get_width(), 
@@ -52,6 +53,7 @@ class ConvolutionalNetwork:
 				self.layers.append( OutputLayer( self.layer_constraints[layer].get_identity(), 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(),
 					self.layer_constraints[ layer ].get_channels(), 
+					self.layer_constraints[layer].get_receptive_field_size(),
 					self.layer_constraints[layer].get_regular_weight_init_range(), 
 					self.layer_constraints[layer].get_bias_weight_init_range(), 
 					self.layers[ len( self.layers ) - 1 ].get_width(), 
@@ -61,6 +63,7 @@ class ConvolutionalNetwork:
 				self.layers.append( FullyConnectedLayer( self.layer_constraints[layer].get_identity() , 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(), 
 					self.layer_constraints[ layer ].get_channels(),
+					self.layer_constraints[layer].get_receptive_field_size(),
 					self.layer_constraints[layer].get_regular_weight_init_range(), 
 					self.layer_constraints[layer].get_bias_weight_init_range(), 
 					self.layers[ len( self.layers ) - 1 ].get_width(), 
@@ -73,6 +76,7 @@ class ConvolutionalNetwork:
 					self.layers.append( MaxPoolingLayer( self.layer_constraints[layer].get_identity() , 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(), 
 					self.layer_constraints[ layer ].get_channels(),
+					self.layer_constraints[layer].get_receptive_field_size(),
 					self.layer_constraints[layer].get_regular_weight_init_range(), 
 					self.layer_constraints[layer].get_bias_weight_init_range(), 
 					self.layers[ len( self.layers ) - 1 ].get_width(), 
@@ -82,6 +86,7 @@ class ConvolutionalNetwork:
 					self.layers.append( MeanPoolingLayer( self.layer_constraints[layer].get_identity() , 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(), 
 					self.layer_constraints[ layer ].get_channels(),
+					self.layer_constraints[layer].get_receptive_field_size(),
 					self.layer_constraints[layer].get_regular_weight_init_range(), 
 					self.layer_constraints[layer].get_bias_weight_init_range(), 
 					self.layers[ len( self.layers ) - 1 ].get_width(), 
@@ -95,6 +100,7 @@ class ConvolutionalNetwork:
 					self.layers.append( MaxPoolingLayer( self.layer_constraints[layer].get_identity() , 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(), 
 					self.layer_constraints[ layer ].get_channels(),
+					self.layer_constraints[layer].get_receptive_field_size(),
 					self.layer_constraints[layer].get_regular_weight_init_range(), 
 					self.layer_constraints[layer].get_bias_weight_init_range(), 
 					self.layers[ len( self.layers ) - 1 ].get_width(), 
@@ -108,11 +114,31 @@ class ConvolutionalNetwork:
 				self.layers[ len( self.layers ) - 1 ].assemble_layer()
 
 	def hypothesis( self, inputs ):
-		pass
+		for layer in self.layers:
+			for channel in range( self.layers[layer].get_channels() ):
+				# row will be appended to this, after the
+				# initial row is set as part of a calculation 
+				self.computed_activations = None 
+				for row, col in iterate_over_input_groups( 0, 
+					self.layers[layer].get_input_width(), 
+					self.layers[layer].get_input_height(), self.layers[layer].get_rfs() ):
+					if ( row == 0 ) & ( col == 0 ):
+						self.compute_activations = np.multiply( )
+
+
+
+
+	def iterate_over_input_groups( self, start, input_width, input_height, rfs ):
+		for row in range( input_height - rfs + 1 ):
+			for col in range( input_width - rfs + 1 ):
+				yield row, col
+
 
 	def get_layers( self ):
 		return self.layers
 
+	# this concerns pre-programming aspects
+	# such as randomisation of batches
 	def preprocess_inputs( self ):
 		pass
 
@@ -129,7 +155,7 @@ if __name__ == "__main__":
 
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
 		1 : { ConvolutionalType() : 2 }, 2 : { MaxPoolingType() : 4 }, 
-		3 : { FullyConnectedType() : 3 } }
+		3 : { FullyConnectedType() : 1 } }
 	input_layer_width = 7
 	input_layer_height = 7
 	regular_weight_init_range = [0.1,0.2]

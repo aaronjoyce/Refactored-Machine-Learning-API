@@ -6,7 +6,7 @@ class Layer( object ):
 	DEFAULT_X_DIMENSION = 1
 	DEFAULT_Y_DIMENSION = 1
 	def __init__(self, identity, input_width, input_height, 
-		layer_width, layer_height, channels, regular_weight_init_range, 
+		layer_width, layer_height, channels, rfs, regular_weight_init_range, 
 		bias_weight_init_range = None, biases = True ):
 		self.identity = identity 
 		self.input_width = input_width
@@ -17,10 +17,12 @@ class Layer( object ):
 		self.bias_weight_init_range = bias_weight_init_range
 		self.biases = biases
 		self.channels = channels
+		self.rfs = rfs
 		self.regular_weights = []
 		self.bias_weights = []
 		self.regular_activations = []
 		self.bias_activations = []
+		self.indices = None
 
 	def assemble_layer( self ):
 		print( "assemble_layer invoked" )
@@ -35,6 +37,16 @@ class Layer( object ):
 
 	def get_width( self ):
 		return self.layer_width 
+
+	def get_channels( self ):
+		return self.channels
+
+	def set_channels( self, chanenls ):
+		self.channels = channels
+
+	def get_indices_model( self ):
+		return np.arange( self.input_width * self.input_height 
+			).reshape( self.input_height, self.input_width )
 
 	def get_height( self ):
 		return self.layer_height
@@ -56,6 +68,9 @@ class Layer( object ):
 
 	def set_width( self, width ):
 		self.layer_width = width
+
+	def set_rfs( self, rfs ):
+		self.rfs = rfs
 
 	def set_height( self, height ):
 		self.layer_height = height
@@ -100,83 +115,88 @@ class Layer( object ):
 	def set_bias_weights( self, weights, channel ):
 		self.bias_weights[ channel ] = weights
 
+	def set_indices( self, indices ):
+		self.indices = indices
+
+	def get_rfs( self ):
+		return self.rfs
 
 
 
 
 class InputLayer( Layer ):
 	"""docstring for InputLayer"""
-	def __init__( self, identity, layer_width, layer_height, channels,
+	def __init__( self, identity, layer_width, layer_height, channels, rfs,
 		regular_weight_init_range = None, bias_weight_init_range = None, 
 		input_width = None, input_height = None, biases = False ):
 		super(InputLayer, self ).__init__( identity, input_width, 
-			input_height, layer_width, layer_height, channels, regular_weight_init_range, 
+			input_height, layer_width, layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, biases )
 		
 
 class ConvolutionalLayer( Layer ):
 	"""docstring for ConvolutionalLayer"""
-	def __init__(self, identity, layer_width, layer_height, channels,
+	def __init__(self, identity, layer_width, layer_height, channels, rfs,
 		regular_weight_init_range, bias_weight_init_range, 
 		input_width, input_height, biases = True ):
 		super(ConvolutionalLayer, self ).__init__( identity, input_width, 
-			input_height, layer_width, layer_height, channels, regular_weight_init_range, 
+			input_height, layer_width, layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, biases )
 
 
 class PoolingLayer( Layer ):
 	"""docstring for Pooling"""
-	def __init__(self, identity, layer_width, layer_height, channels,
+	def __init__(self, identity, layer_width, layer_height, channels, rfs,
 		regular_weight_init_range, bias_weight_init_range, 
 		input_width, input_height, biases = True ):
 		super(PoolingLayer, self ).__init__( identity, input_width, 
-			input_height, layer_width, layer_height, channels, regular_weight_init_range, 
+			input_height, layer_width, layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, biases )
 
 		
 class MinPoolingLayer(PoolingLayer):
 	"""docstring for MinPooling"""
-	def __init__(self, identity, layer_width, layer_height, channels, 
+	def __init__(self, identity, layer_width, layer_height, channels, rfs,
 		regular_weight_init_range, bias_weight_init_range, 
 		input_width, input_height, biases = True ):
 		super(MinPoolingLayer, self ).__init__( identity, layer_width, 
-			layer_height, channels, regular_weight_init_range, 
+			layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, input_width, input_height, biases )
 		
 
 class MaxPoolingLayer(PoolingLayer):
 	"""docstring for MaxPooling"""
-	def __init__(self, identity, layer_width, layer_height, channels,
+	def __init__(self, identity, layer_width, layer_height, channels, rfs,
 		regular_weight_init_range, bias_weight_init_range, 
 		input_width, input_height, biases = True ):
 		super(MaxPoolingLayer, self ).__init__( identity, layer_width, 
-			layer_height, channels, regular_weight_init_range, 
+			layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, input_width, input_height, biases )
 		
 class MeanPoolingLayer(PoolingLayer):
 	"""docstring for MeanPooling"""
-	def __init__(self, identity, layer_width, layer_height, channels,
+	def __init__(self, identity, layer_width, layer_height, channels, rfs,
 		regular_weight_init_range, bias_weight_init_range, 
 		input_width, input_height, biases = True ):
 		super(MeanPoolingLayer, self ).__init__( identity, layer_width, 
-			layer_height, channels, regular_weight_init_range, 
+			layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, input_width, input_height, biases )
 
 class OutputLayer(Layer):
 	"""docstring for OutputLayer"""
-	def __init__(self, identity, layer_width, layer_height, channels,
+	def __init__(self, identity, layer_width, layer_height, channels, rfs,
 		regular_weight_init_range, bias_weight_init_range, 
 		input_width, input_height, biases = True ):
 		super(OutputLayer, self).__init__( identity, input_width, 
-			input_height, layer_width, layer_height, channels, regular_weight_init_range, 
+			input_height, layer_width, layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, biases )
 
 class FullyConnectedLayer(Layer):
 	"""docstring for FullyConnectedLayer"""
-	def __init__(self, identity, layer_width, layer_height, channels,
+	def __init__(self, identity, layer_width, layer_height, channels, rfs,
 		regular_weight_init_range, bias_weight_init_range, 
 		input_width, input_height, biases = True ):
 		super(FullyConnectedLayer, self).__init__( identity, input_width, 
-			input_height, layer_width, layer_height, channels, regular_weight_init_range, 
+			input_height, layer_width, layer_height, channels, rfs, regular_weight_init_range, 
 			bias_weight_init_range, biases )
 		
