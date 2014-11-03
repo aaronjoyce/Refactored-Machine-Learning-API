@@ -270,9 +270,42 @@ class ConvolutionalNetwork:
 		for layer in range( len( self.layers ) - 1, -1, -1 ):
 			for channel in range( self.layers[layer].get_channels() ):
 				if ( layer == len( self.layers ) - 1 ):
+					if isinstance( self.layers[layer], ConvolutionalLayer ):
+						"""
+						for row, col in self.iterate_over_input_groups( 0, 
+							self.layers[layer].get_input_width(), 
+							self.layers[layer].get_input_height(), self.layers[layer].get_rfs() ):
+						"""
+						# something like along these lines..
+						pass
+
+					elif isinstance( self.layers[layer], MaxPoolingLayer ):
+						pass
+					elif isinstance( self.layers[layer], MinPoolingLayer ):
+						pass
+					elif isinstance( self.layers[layer], MeanPoolingLayer ):
+						pass
+					elif isinstance( self.layers[layer], FullyConnectedLayer ):
+						pass
+					elif isinstance( self.layers[layer], OutputLayer ):
+						pass
 					node_errors[ layer ][channel] = self.compute_output_error( 
 						self.layers[layer].get_regular_activations( channel ), target_outputs )
 				else:
+					if isinstance( self.layers[layer], InputLayer ):
+						pass
+					elif isinstance( self.layers[layer], ConvolutionalLayer ):
+						pass
+					elif isinstance( self.layers[layer], MaxPoolingLayer ):
+						pass
+					elif isinstance( self.layers[layer], MinPoolingLayer ):
+						pass
+					elif isinstance( self.layers[layer], MeanPoolingLayer ):
+						pass
+					elif isinstance( self.layers[layer], FullyConnectedLayer ):
+						pass
+					elif isinstance( self.layers[layer], OutputLayer ):
+						pass
 					node_errors[ layer ][channel] = self.compute_hidden_error( 
 						self.layers[layer].get_regular_activations( channel ), 
 						node_errors[ layer + 1 ][ channel ], 
@@ -343,8 +376,8 @@ if __name__ == "__main__":
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
 		1 : { ConvolutionalType() : 2 }, 2 : { MaxPoolingType() : 4 }, 
 		3 : { FullyConnectedType() : 1 } }
-	input_layer_width = 6
-	input_layer_height = 6
+	input_layer_width = 9
+	input_layer_height = 9
 	instances_per_batch = 3
 	regular_weight_init_range = [0.1,0.2]
 	bias_weight_init_range = [0.1,0.2]
@@ -370,7 +403,7 @@ if __name__ == "__main__":
 	network.back_propagate( inputs, targets )
 
 	
-	"""
+	
 	for layer in range( len( network.get_layers() ) ):
 		for channel in range( network.get_layers()[layer].get_channels() ):
 			print( "layer: " + str( layer ) )
@@ -381,7 +414,7 @@ if __name__ == "__main__":
 					network.get_layers()[layer].get_regular_weights( channel ) ) )
 				print( "bias weights: " + str( network.get_layers()[layer].get_bias_weights( channel ) ) )
 			print( "computed_activations: " + str( network.get_layers()[layer].get_regular_activations( channel ) ) )
-	"""
+
 	
 
 
