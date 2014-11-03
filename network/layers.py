@@ -185,6 +185,7 @@ class ConvolutionalLayer( Layer ):
 			bias_weight_init_range, biases )
 
 
+
 class PoolingLayer( Layer ):
 	"""docstring for Pooling"""
 	def __init__(self, identity, layer_width, layer_height, channels, rfs, bias_nodes,
@@ -223,6 +224,19 @@ class MeanPoolingLayer(PoolingLayer):
 			layer_height, channels, rfs, bias_nodes, regular_weight_init_range, 
 			bias_weight_init_range, input_width, input_height, biases )
 
+class FullyConnectedLayer(Layer):
+	"""docstring for FullyConnectedLayer"""
+	def __init__(self, identity, layer_width, layer_height, channels, rfs, bias_nodes,
+		regular_weight_init_range, bias_weight_init_range, 
+		input_width, input_height, biases = True ):
+		super(FullyConnectedLayer, self).__init__( identity, input_width, 
+			input_height, layer_width, layer_height, channels, rfs, bias_nodes, regular_weight_init_range, 
+			bias_weight_init_range, biases )
+	"""
+	def assemble_layer( self ):
+		pass
+	"""
+
 class OutputLayer(Layer):
 	"""docstring for OutputLayer"""
 	def __init__(self, identity, layer_width, layer_height, channels, rfs, bias_nodes,
@@ -232,12 +246,4 @@ class OutputLayer(Layer):
 			input_height, layer_width, layer_height, channels, rfs, bias_nodes, regular_weight_init_range, 
 			bias_weight_init_range, biases )
 
-class FullyConnectedLayer(Layer):
-	"""docstring for FullyConnectedLayer"""
-	def __init__(self, identity, layer_width, layer_height, channels, rfs, bias_nodes,
-		regular_weight_init_range, bias_weight_init_range, 
-		input_width, input_height, biases = True ):
-		super(FullyConnectedLayer, self).__init__( identity, input_width, 
-			input_height, layer_width, layer_height, channels, rfs, bias_nodes, regular_weight_init_range, 
-			bias_weight_init_range, biases )
 		

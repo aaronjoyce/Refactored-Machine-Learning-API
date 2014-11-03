@@ -140,7 +140,46 @@ class ConvolutionalNetwork:
 					indices = self.layers[layer-1].get_indices_model(channel)
 					for row, col in self.iterate_over_input_groups( 0, 
 						self.layers[layer].get_input_width(), 
-						self.layers[layer].get_input_height(), self.layers[layer].get_rfs() ):		
+						self.layers[layer].get_input_height(), self.layers[layer].get_rfs() ):
+						if isinstance( self.layers[layer], ConvolutionalLayer ):
+							print( "ConvolutionalLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+							np.sum( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
+								row, col, indices, inputs ) ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+
+						elif isinstance( self.layers[layer], MaxPoolingLayer ):
+							print( "MaxPoolingLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+							np.amax( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
+								row, col, indices, inputs ) ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+
+						elif isinstance( self.layers[layer], MinPoolingLayer ):
+							print( "MinPoolingLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+								np.amin( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
+								row, col, indices, inputs ) ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+
+						elif isinstance( self.layers[layer], MeanPoolingLayer ):
+							print( "MeanPoolingLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+							np.mean( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
+								row, col, indices, inputs ) ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+
+						elif isinstance( self.layers[layer], FullyConnectedLayer ):
+							print( "FullyConnectedLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+								self.layers[layer].get_regular_activations( channel ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )	
+
 						computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, inputs ), 
@@ -159,6 +198,44 @@ class ConvolutionalNetwork:
 					for row, col in self.iterate_over_input_groups( 0, 
 						self.layers[layer].get_input_width(), 
 						self.layers[layer].get_input_height(), self.layers[layer].get_rfs() ):
+						if isinstance( self.layers[layer], ConvolutionalLayer ):
+							print( "ConvolutionalLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+							np.sum( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
+								row, col, indices, self.layers[layer-1].get_regular_activations(channel)) ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+
+						elif isinstance( self.layers[layer], MaxPoolingLayer ):
+							print( "MaxPoolingLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+							np.amax( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
+								row, col, indices, self.layers[layer-1].get_regular_activations(channel)) ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+
+						elif isinstance( self.layers[layer], MinPoolingLayer ):
+							print( "MinPoolingLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+							np.amin( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
+								row, col, indices, self.layers[layer-1].get_regular_activations(channel) ) ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+
+						elif isinstance( self.layers[layer], MeanPoolingLayer ):
+							print( "MeanPoolingLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+							np.mean( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
+								row, col, indices, self.layers[layer-1].get_regular_activations(channel)) ), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+
+						elif isinstance( self.layers[layer], FullyConnectedLayer ):
+							print( "FullyConnectedLayer" )
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
+							self.layers[layer-1].get_regular_activations(channel), 
+								np.take( self.layers[layer].get_regular_weights( channel ), 
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )		
 
 						"""
 						Must collate regular activations to form 
@@ -266,8 +343,8 @@ if __name__ == "__main__":
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
 		1 : { ConvolutionalType() : 2 }, 2 : { MaxPoolingType() : 4 }, 
 		3 : { FullyConnectedType() : 1 } }
-	input_layer_width = 9
-	input_layer_height = 9
+	input_layer_width = 6
+	input_layer_height = 6
 	instances_per_batch = 3
 	regular_weight_init_range = [0.1,0.2]
 	bias_weight_init_range = [0.1,0.2]
@@ -293,6 +370,7 @@ if __name__ == "__main__":
 	network.back_propagate( inputs, targets )
 
 	
+	"""
 	for layer in range( len( network.get_layers() ) ):
 		for channel in range( network.get_layers()[layer].get_channels() ):
 			print( "layer: " + str( layer ) )
@@ -303,7 +381,7 @@ if __name__ == "__main__":
 					network.get_layers()[layer].get_regular_weights( channel ) ) )
 				print( "bias weights: " + str( network.get_layers()[layer].get_bias_weights( channel ) ) )
 			print( "computed_activations: " + str( network.get_layers()[layer].get_regular_activations( channel ) ) )
-		
+	"""
 	
 
 
