@@ -275,21 +275,26 @@ class ConvolutionalNetwork:
 				if ( layer == len( self.layers ) - 1 ):
 					if isinstance( self.layers[layer], ConvolutionalLayer ):
 						# something like along these lines..
-						pass
+						node_errors[ layer ][channel] = np.sum( self.compute_output_error( 
+						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
+
 
 					elif isinstance( self.layers[layer], MaxPoolingLayer ):
-						pass
-					elif isinstance( self.layers[layer], MinPoolingLayer ):
-						pass
-					elif isinstance( self.layers[layer], MeanPoolingLayer ):
-						pass
-					elif isinstance( self.layers[layer], FullyConnectedLayer ):
-						pass
-					elif isinstance( self.layers[layer], OutputLayer ):
-						pass
-					
-					node_errors[ layer ][channel] = np.sum( self.compute_output_error( 
+						node_errors[ layer ][channel] = np.max( self.compute_output_error( 
 						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
+					elif isinstance( self.layers[layer], MinPoolingLayer ):
+						node_errors[ layer ][channel] = np.min( self.compute_output_error( 
+						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
+					elif isinstance( self.layers[layer], MeanPoolingLayer ):
+						node_errors[ layer ][channel] = np.mean( self.compute_output_error( 
+						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
+					elif isinstance( self.layers[layer], FullyConnectedLayer ):
+						node_errors[ layer ][channel] = self.compute_output_error( 
+						self.layers[layer].get_regular_activations( channel ), target_outputs )
+					elif isinstance( self.layers[layer], OutputLayer ):
+						node_errors[ layer ][channel] = self.compute_output_error( 
+						self.layers[layer].get_regular_activations( channel ), target_outputs )
+					
 					for row in range( self.layers[layer].get_height() ):
 						for col in range( self.layers[layer].get_width() ):
 							regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
@@ -693,7 +698,7 @@ if __name__ == "__main__":
 
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
 		1 : { ConvolutionalType() : 2 }, 2 : { MeanPoolingType() : 4 }, 
-		3 : { ConvolutionalType() : 2 } }
+		3 : { FullyConnectedType() : 2 } }
 	input_layer_width = 9
 	input_layer_height = 9
 	instances_per_batch = 3
