@@ -135,25 +135,25 @@ class Layer( object ):
 		return self.bias_weights[ channel ].get_edges()
 
 	def set_regular_weights( self, weights, channel ):
-		self.regular_weights[ channel ] = weights
+		self.regular_weights[ channel ].set_edges( weights )
 
 	def set_bias_weights( self, weights, channel ):
-		self.bias_weights[ channel ] = weights
+		self.bias_weights[ channel ].set_edges( weights )
 
 	def get_rfs( self ):
 		return self.rfs
 
 	def get_regular_weight_changes( self, channel ):
-		return self.regular_weight_changes[ channel ]
+		return self.regular_weight_changes[ channel ].get_edges()
 
 	def get_bias_weight_changes( self, channel ):
 		return self.bias_weight_changes[ channel ]
 
 	def set_regular_weight_changes( self, changes, channel ):
-		self.regular_weight_changes[channel] = changes
+		self.regular_weight_changes[channel].set_edges( changes )
 
 	def set_bias_weight_changes( self, changes, channel ):
-		self.bias_weight_changes[channel] = changes
+		self.bias_weight_changes[channel].set_edges( changes )
 
 
 
