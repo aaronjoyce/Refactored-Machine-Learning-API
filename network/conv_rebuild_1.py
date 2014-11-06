@@ -273,11 +273,11 @@ class ConvolutionalNetwork:
 					* self.layers[layer].get_height() ).reshape(( self.layers[layer].get_height(), 
 						self.layers[layer].get_width() )) )
 				if ( layer == len( self.layers ) - 1 ):
+					print( "self.layers[layer]: " + str( self.layers[layer]))
 					if isinstance( self.layers[layer], ConvolutionalLayer ):
 						# something like along these lines..
 						node_errors[ layer ][channel] = np.sum( self.compute_output_error( 
 						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
-
 
 					elif isinstance( self.layers[layer], MaxPoolingLayer ):
 						node_errors[ layer ][channel] = np.max( self.compute_output_error( 
@@ -289,11 +289,13 @@ class ConvolutionalNetwork:
 						node_errors[ layer ][channel] = np.mean( self.compute_output_error( 
 						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
 					elif isinstance( self.layers[layer], FullyConnectedLayer ):
-						node_errors[ layer ][channel] = self.compute_output_error( 
-						self.layers[layer].get_regular_activations( channel ), target_outputs )
+						node_errors[ layer ][channel] = np.sum( self.compute_output_error( 
+						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
+						
 					elif isinstance( self.layers[layer], OutputLayer ):
-						node_errors[ layer ][channel] = self.compute_output_error( 
-						self.layers[layer].get_regular_activations( channel ), target_outputs )
+						node_errors[ layer ][channel] = np.sum( self.compute_output_error( 
+						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
+
 					
 					for row in range( self.layers[layer].get_height() ):
 						for col in range( self.layers[layer].get_width() ):
@@ -647,7 +649,18 @@ class ConvolutionalNetwork:
 				
 				self.layers[layer].set_regular_weight_changes( 
 					self.layers[layer].get_regular_weight_changes( channel ) + np.transpose( regular_weight_gradients[layer][channel] ), channel )
-				
+		
+	def train( self, inputs, target_outputs, epochs, batch_size ):
+		for epoch in range( epochs ):
+			for index in range( int( np.ceil( float( np.shape( inputs )[0] )/ batch_size ) ) ):
+				input_subset = np.transpose( inputs[ index * batch_size : (index + 1 )*batch_size ] )
+				output_subset = np.transpose( target_outputs[ index * batch_size : ( index + 1 ) * batch_size ] ) 
+				self.hypothesis( input_subset )
+				self.back_propagate( input_subset, output_subset )
+
+
+
+
 	
 	def iterate_over_input_groups( self, start, input_width, input_height, rfs ):
 		for row in range( input_height - rfs + 1 ):
@@ -697,11 +710,12 @@ if __name__ == "__main__":
 	# denotes the proposed receptive field size, passed as an int-type value. 
 
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
-		1 : { ConvolutionalType() : 2 }, 2 : { MeanPoolingType() : 4 }, 
+		1 : { MaxPoolingType() : 2 }, 2 : { MeanPoolingType() : 4 }, 
 		3 : { FullyConnectedType() : 2 } }
 	input_layer_width = 9
 	input_layer_height = 9
 	instances_per_batch = 3
+	data_instances = 16
 	regular_weight_init_range = [0.1,0.2]
 	bias_weight_init_range = [0.1,0.2]
 	channels = 3
@@ -714,6 +728,7 @@ if __name__ == "__main__":
 	network = ConvolutionalNetwork( layer_configurations, 0.1, "Test Conv. S.N.N." )
 	network.assemble_network()
 
+	"""
 	inputs = np.empty(( 
 		input_layer_width * input_layer_height * channels ) * instances_per_batch )
 	inputs = np.asmatrix( inputs.reshape( input_layer_width * input_layer_height * channels, instances_per_batch ) )
@@ -722,14 +737,24 @@ if __name__ == "__main__":
 
 	for i in range( input_layer_width * input_layer_height * channels ):
 		inputs[i].fill( i + 1 )
-	print( "hypothesis: " + str( network.hypothesis( inputs ) ) )
+	network.hypothesis( inputs )
 	network.back_propagate( inputs, targets )
+	"""
+
+	inputs = np.empty( 
+		( data_instances, input_layer_width * input_layer_height * channels ) )
+	inputs.fill( 0.5 )
+	inputs = np.asmatrix( inputs )
+	targets = np.asmatrix( np.ones( ( data_instances, layer_configurations['layer 3'].get_height() * layer_configurations[ 'layer 3' ].get_width() ) ) )
+
+
+	batch_size = 3
+	epochs = 7
+	network.train( inputs, targets, epochs, batch_size )
+
 
 
 	
-	for layer in range( 1, len( network.get_layers() ) ):
-		print( "network.layers[layer].get_regular_weight_changes(0): " + str( 
-			network.layers[layer].get_regular_weight_changes(0) ) )
 	
 
 	
