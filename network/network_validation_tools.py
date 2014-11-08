@@ -31,7 +31,7 @@ def generate_layer_configurations( input_layer_width,
 					layer_configurations[ 'layer ' + str( p_key ) ] = LayerConstraints( 
 						proposed_layer_types_and_rfs[ p_key ][ s_key ], 
 						input_layer_width, input_layer_height, s_key, channels, regular_weight_init_range, 
-						bias_weight_init_range, InputType() )
+						bias_weight_init_range, InputType(), InputType() )
 			
 			elif ( isinstance( proposed_layer_types_and_rfs[ p_key ].keys()[0], OutputType ) ):
 				for s_key in proposed_layer_types_and_rfs[ p_key ].keys():
@@ -52,7 +52,7 @@ def generate_layer_configurations( input_layer_width,
 						proposed_layer_types_and_rfs[ p_key ][ s_key], 1 ), 
 					compute_convolutional_layer_depth( layer_configurations[ 'layer ' + str( p_key - 1) ].get_height(),
 						proposed_layer_types_and_rfs[ p_key ][ s_key ], 1 ), s_key, channels, regular_weight_init_range, 
-					bias_weight_init_range, FullyConnectedType() )
+					bias_weight_init_range, FullyConnectedType(), FullyConnectedType() )
 
 			elif ( isinstance( proposed_layer_types_and_rfs[ p_key ].keys()[0], ConvolutionalType ) ):
 				for s_key in proposed_layer_types_and_rfs[ p_key ].keys():
@@ -62,7 +62,7 @@ def generate_layer_configurations( input_layer_width,
 						proposed_layer_types_and_rfs[ p_key ][ s_key ], 1 ), 
 					compute_convolutional_layer_depth( layer_configurations[ 'layer ' + str( p_key - 1 ) ].get_height(), 
 						proposed_layer_types_and_rfs[ p_key ][ s_key ], 1 ), s_key, channels, regular_weight_init_range, 
-					bias_weight_init_range, ConvolutionalType() )
+					bias_weight_init_range, ConvolutionalType(), ConvolutionalType() )
 
 			elif ( isinstance( proposed_layer_types_and_rfs[ p_key ].keys()[0], MinPoolingType ) ):
 				for s_key in proposed_layer_types_and_rfs[ p_key ].keys():

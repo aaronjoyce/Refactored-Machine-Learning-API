@@ -62,7 +62,7 @@ class ConvolutionalNetwork:
 					self.layers[ len( self.layers ) - 1 ].get_height() ) )
 			elif ( isinstance( self.layer_constraints[layer].get_super_type(), 
 				OutputType ) ):
-				self.layers.append( OutputLayer( self.layer_constraints[layer].get_identity(), 
+				self.layers.append( FullyConnectedLayer( self.layer_constraints[layer].get_identity(), 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(),
 					self.layer_constraints[ layer ].get_channels(), 
 					self.layer_constraints[layer].get_receptive_field_size(),
@@ -87,7 +87,7 @@ class ConvolutionalNetwork:
 				PoolingType ) ):
 				if ( isinstance( self.layer_constraints[layer].get_sub_type(), 
 					MinPoolingType ) ):
-					self.layers.append( MaxPoolingLayer( self.layer_constraints[layer].get_identity() , 
+					self.layers.append( MinPoolingLayer( self.layer_constraints[layer].get_identity() , 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(), 
 					self.layer_constraints[ layer ].get_channels(),
 					self.layer_constraints[layer].get_receptive_field_size(),
@@ -123,9 +123,10 @@ class ConvolutionalNetwork:
 					raise Exception( "Invalid pooling type specified as sub-type of PoolingType" ) 
 			else:
 				raise Exception( "Invalid LayerConstraints object specified" )
+			
 			if len( self.layers ) != 1:
 				self.layers[ len( self.layers ) - 1 ].assemble_layer()
-
+		print( "Layer objects: " + str( self.layers ) )
 	# Returns a dict of matrices, where 
 	# the number of dict elements denote
 	# the number of input channels. 
@@ -148,59 +149,48 @@ class ConvolutionalNetwork:
 						self.layers[layer].get_input_width(), 
 						self.layers[layer].get_input_height(), self.layers[layer].get_rfs() ):
 						if isinstance( self.layers[layer], ConvolutionalLayer ):
-							print( "ConvolutionalLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							np.sum( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, inputs ) ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+					
+			
+
 
 						elif isinstance( self.layers[layer], MaxPoolingLayer ):
-							print( "MaxPoolingLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							np.amax( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, inputs ) ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 
 						elif isinstance( self.layers[layer], MinPoolingLayer ):
-							print( "MinPoolingLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 								np.amin( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, inputs ) ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
+					
 
 						elif isinstance( self.layers[layer], MeanPoolingLayer ):
-							print( "MeanPoolingLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							np.mean( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, inputs ) ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 
 						elif isinstance( self.layers[layer], FullyConnectedLayer ):
-							print( "FullyConnectedLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 								self.layers[layer].get_regular_activations( channel ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 )	)
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )	
 						else:
 							raise Exception( "Should not have been thrown" )
-						"""
-						computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
-							extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
-								row, col, indices, inputs ), 
-								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
-						"""
 
-					self.layers[layer].set_regular_activations( computed_activations[channel] + 
-						sigmoid( np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
+					self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel] + 
+						np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
 						self.layers[layer].get_bias_weights( channel ) ) ) ), channel )
-					print( "layer: " + str( layer ) )
-					print( "channel: " + str( channel ) )
-					print( "activations: " + str( self.layers[layer].get_regular_activations( channel ) ) ) 
 
 			elif layer > 1:
 				computed_activations = [np.empty(( self.layers[layer].get_height() * self.layers[layer].get_width(),
@@ -212,46 +202,39 @@ class ConvolutionalNetwork:
 						self.layers[layer].get_input_width(), 
 						self.layers[layer].get_input_height(), self.layers[layer].get_rfs() ):
 						if isinstance( self.layers[layer], ConvolutionalLayer ):
-							print( "ConvolutionalLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							np.sum( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, self.layers[layer-1].get_regular_activations(channel)) ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 
 						elif isinstance( self.layers[layer], MaxPoolingLayer ):
-							print( "MaxPoolingLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							np.amax( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, self.layers[layer-1].get_regular_activations(channel)) ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 
 						elif isinstance( self.layers[layer], MinPoolingLayer ):
-							print( "MinPoolingLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							np.amin( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, self.layers[layer-1].get_regular_activations(channel) ) ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 
 						elif isinstance( self.layers[layer], MeanPoolingLayer ):
-							print( "MeanPoolingLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							np.mean( extract_rows( ROW_STEP, self.layers[layer].get_rfs(), 
 								row, col, indices, self.layers[layer-1].get_regular_activations(channel)) ), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 ) )
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 
 						elif isinstance( self.layers[layer], FullyConnectedLayer ):
-							print( "FullyConnectedLayer" )
-							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = sigmoid( np.sum( np.multiply( 
+							computed_activations[channel][ self.layers[layer].get_width() * row + col ] = np.sum( np.multiply( 
 							self.layers[layer-1].get_regular_activations(channel), 
 								np.take( self.layers[layer].get_regular_weights( channel ), 
-									[ self.layers[layer].get_width() * row + col ] ) ), 0 )	)	
+									[ self.layers[layer].get_width() * row + col ] ) ), 0 )	
 						else:
-							print( "self.layers[layer]: " + str( self.layers[layer] ) )
-							print( "layer index: " + str( layer ) )
 							raise Exception( "Should not have been thrown" )
 
 						"""
@@ -266,12 +249,10 @@ class ConvolutionalNetwork:
 								np.take( self.layers[layer].get_regular_weights( channel ), 
 									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 						"""
-					self.layers[layer].set_regular_activations( computed_activations[channel] + 
-						sigmoid( np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
-						self.layers[layer].get_bias_weights( channel ) ) ) ) , channel )
-					print( "layer: " + str( layer ) )
-					print( "channel: " + str( channel ) )
-					print( "activations: " + str( self.layers[layer].get_regular_activations( channel ) ) ) 
+					self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel] + 
+						np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
+						self.layers[layer].get_bias_weights( channel ) ) ) ), channel )
+
 		return self.layers[layer].get_regular_activations()
 
 
@@ -718,8 +699,6 @@ class ConvolutionalNetwork:
 	# assert( numpy.shape( hypothesis ) == numpy.shape( target ) )
 	def compute_output_error( self, hypothesis, target ):
 		assert( np.shape( hypothesis ) == np.shape( target ) )
-		print( "hypothesis: " + str( hypothesis ) )
-		print( "target: " + str( target ) )
 		return np.multiply( - ( target - hypothesis ), np.multiply( hypothesis, ( 1 - hypothesis ) ) )
 
 	def compute_regular_weight_gradients( self, activations, errors ):
@@ -753,15 +732,15 @@ if __name__ == "__main__":
 	"""
 	
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
-	1 : { MinPoolingType() : 7 }, 2 : { MinPoolingType() : 6 }, 
-	3 : { MinPoolingType() : 6 }, 4 : { MinPoolingType() : 6 }, 
+	1 : { ConvolutionalType() : 7 }, 2 : { MinPoolingType() : 6 }, 
+	3 : { ConvolutionalType() : 6 }, 4 : { MaxPoolingType() : 6 }, 
 	5: { ConvolutionalType() : 4 }, 6 : { FullyConnectedType() : 1} }
 	
 	input_layer_width = 28
 	input_layer_height = 28
 	#instances_per_batch = 2
 	out_dimensionality = 10
-	data_instances = 10
+	data_instances = 5000
 	regular_weight_init_range = [0.1,0.2]
 	bias_weight_init_range = [0.1,0.2]
 	channels = 1
@@ -802,7 +781,7 @@ if __name__ == "__main__":
 
 	#number_of_instances = 20
     #output_dimensionality = 10
-"""
+
 inputs = np.asmatrix( np.zeros( ( data_instances, input_layer_height * input_layer_width ) ) )
 outputs = np.asmatrix( np.zeros( ( data_instances, out_dimensionality ) ) )
 data = load_data_wrapper()
@@ -818,7 +797,7 @@ print( "input: " + str( np.asmatrix( load_data_wrapper()[0][data_instances][0]))
 print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][data_instances][0] ) ) ) )
 print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][data_instances][1] ) ) )
 	
-
+"""
 for layer in range( len( network.layers ) ):
 	for channel in range( network.layers[layer].get_channels() ):
 		print( "layer: " + str( layer ) )
