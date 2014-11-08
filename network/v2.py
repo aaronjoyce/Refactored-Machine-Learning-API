@@ -16,7 +16,7 @@ class EdgeGroup:
 
 		self.edges = None
 		self.gradients = None
-
+	
 	def initialise_random_edges( self ):
 		self.edges = np.matrix( np.random.uniform( 
 			self.range[0], self.range[1], self.x_dimension * self.y_dimension 
@@ -103,6 +103,11 @@ class Network:
 
 	def train( self, inputs, target_outputs, epochs, batch_size, order ):
 		for epoch in range( epochs ):
+			for layer in range( len( self.layers ) ):
+				print( "epoch: " + str( epoch ) )
+				print( "layer: " + str( layer ) )
+				print( "self.layers[layer].get_all_regular_weights(): " + str( 
+					self.layers[layer].get_all_regular_weights() ) )
 			new_epoch = True
 			if order != ORDER_4:
 				if epoch == 0 & order == ORDER_0:
@@ -222,6 +227,7 @@ class Network:
 
 		print "hypothesis: " + str( self.hypothesis( inputs ) )
 		print "target: " + str( target_output )
+		print( "weight gradients: " + str( weight_gradients ) )
 		  		
 			
 
@@ -300,11 +306,9 @@ class Layer:
 	# is equal to the number of activations in the active 
 	# batch of input. 
 	def update_all_node_activations( self, nodes ):
-		print "nodes: " + str( nodes )
 		for node in range( self.depth * self.breadth ):
-			print "np.take( nodes, [node], 1 ): " + str( np.take( nodes, [node], 1 ) )
 			self.nodes[0][ node ].set_node( np.take( nodes, [node], 1 ) )
-			print "self: " + str( self.nodes[0][node].get_node() )
+
 
 
 	# Returns the activation(s) associated with a Node object
@@ -521,7 +525,6 @@ class Layer:
 	#   	[wc,wc,wc,wc,wc,...,wc],
 	#   	[wc,wc,wc,wc,wc,...,wc] ], where len( all regular weights ) == 9 -- the same flattened length of 'nodes'.	
 	def set_all_regular_weight_changes( self, weight_changes ):
-		print( "weight_changes: " + str( weight_changes ))
 		for node in range( self.depth * self.breadth ):
 			self.nodes[0][node].set_regular_weight_changes( weight_changes[node] )
 
@@ -771,9 +774,6 @@ class SparseAutoencoderNetwork( Network ):
 				 np.transpose( np.matrix(bias_weight_gradients[layer]) ) )
 			layer -= 1
 
-		print "hypothesis: " + str( self.hypothesis( inputs ) )
-		print "target: " + str( target_output )
-
 
 # Attributes of a Node:
 # - Activation
@@ -788,7 +788,7 @@ class NodeActivationIndexException( Exception ):
 
 if __name__ == "__main__":
 			input_dimensionality = [3,1]
-			hidden_layer_dimensionality = [[5,1]]
+			hidden_layer_dimensionality = [[5,1],[4,1]]
 			learning_rate = 3.0
 			bias_node = 1.0
 			regular_weight_init_range = [0.0,0.1]
@@ -828,7 +828,9 @@ if __name__ == "__main__":
 
 			#hypothesis = network_object.hypothesis( inputs )
 			
-			network_object.train( inputs, target_output, 1, 3, 0 )
+			network_object.train( inputs, target_output, 3, 3, 0 )
+			
+			"""
 			#sparse_autoencoder.train( inputs, target_output, 2, 3, 0 )
 			print "average node activation in Layer 0: " + str( network_object.layers[0].get_average_node_activation() )
 			print "average node activation in Layer 1: " + str( network_object.layers[1].get_average_node_activation() )
@@ -837,7 +839,7 @@ if __name__ == "__main__":
 			
 
 			# the architecture of CNNs is designed to take advantage of 2-dimensional inputs
-			"""
+			
 			for i in range( hidden_layer_dimensionality[0][0]*hidden_layer_dimensionality[0][1] ):
 				print "x: " + str( network_object.layers[0].nodes[0][i].get_x() )
 				print "y: " + str( network_object.layers[0].nodes[0][i] )

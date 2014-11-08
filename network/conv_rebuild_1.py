@@ -273,7 +273,6 @@ class ConvolutionalNetwork:
 					* self.layers[layer].get_height() ).reshape(( self.layers[layer].get_height(), 
 						self.layers[layer].get_width() )) )
 				if ( layer == len( self.layers ) - 1 ):
-					print( "self.layers[layer]: " + str( self.layers[layer]))
 					if isinstance( self.layers[layer], ConvolutionalLayer ):
 						# something like along these lines..
 						node_errors[ layer ][channel] = np.sum( self.compute_output_error( 
@@ -710,11 +709,11 @@ if __name__ == "__main__":
 	# denotes the proposed receptive field size, passed as an int-type value. 
 
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
-		1 : { MaxPoolingType() : 2 }, 2 : { MeanPoolingType() : 4 }, 
-		3 : { FullyConnectedType() : 2 } }
-	input_layer_width = 9
-	input_layer_height = 9
-	instances_per_batch = 3
+		1 : { ConvolutionalType() : 5 }, 2 : { MaxPoolingType() : 4 }, 
+		3 : { ConvolutionalType() : 3 }, 4 : { FullyConnectedType() : 1 } }
+	input_layer_width = 28
+	input_layer_height = 28
+	instances_per_batch = 8
 	data_instances = 16
 	regular_weight_init_range = [0.1,0.2]
 	bias_weight_init_range = [0.1,0.2]
@@ -749,8 +748,9 @@ if __name__ == "__main__":
 
 
 	batch_size = 3
-	epochs = 7
+	epochs = 3
 	network.train( inputs, targets, epochs, batch_size )
+	print( "hypothesis: " + str( network.hypothesis( np.transpose( np.asmatrix( np.ones( ( input_layer_height * input_layer_width * channels ) ) ) ) ) ) )
 
 
 

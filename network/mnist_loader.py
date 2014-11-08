@@ -83,3 +83,17 @@ def vectorized_result(j):
     e = np.zeros((10, 1))
     e[j] = 1.0
     return e
+
+"""
+if __name__ == "__main__":
+    number_of_instances = 20
+    input_width = 28
+    input_height = 28
+    output_dimensionality = 10
+    inputs = np.asmatrix( np.empty( ( number_of_instances, input_height * input_width ) ) )
+    outputs = np.asmatrix( np.empty( ( number_of_instances, output_dimensionality ) ) )
+
+    for instance in range( number_of_instances ):
+        inputs[instance] = np.transpose( np.asmatrix( load_data_wrapper()[0][instance][0] ) )
+        outputs[instance] = np.transpose( np.asmatrix( load_data_wrapper()[0][instance][1] ) )
+"""
