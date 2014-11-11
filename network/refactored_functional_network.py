@@ -186,10 +186,14 @@ class ConvolutionalNetwork:
 									[ self.layers[layer].get_width() * row + col ] ) ), 0 )	
 						else:
 							raise Exception( "Should not have been thrown" )
-
+					"""
 					self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel] + 
 						np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
 						self.layers[layer].get_bias_weights( channel ) ) ) ), channel )
+					"""
+					self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel ] + 
+						np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
+							self.layers[layer].get_bias_weights( channel ) ) ) ), channel )
 					
 				
 
@@ -255,10 +259,26 @@ class ConvolutionalNetwork:
 								np.take( self.layers[layer].get_regular_weights( channel ), 
 									[ self.layers[layer].get_width() * row + col ] ) ), 0 )
 						"""
-					self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel] + 
-						np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
-						self.layers[layer].get_bias_weights( channel ) ) ) ), channel )
-					
+					if ( layer == len( self.layers ) - 1 ):
+						"""
+						self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel] + 
+							np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
+							self.layers[layer].get_bias_weights( channel ) ) ) ), channel )
+						"""
+						self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel ] + 
+							np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
+							self.layers[layer].get_bias_weights( channel ) ) ) ), channel )
+						
+					else:
+						
+						self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel] + 
+							np.transpose( np.multiply( self.layers[layer].get_bias_node( channel ), 
+							self.layers[layer].get_bias_weights( channel ) ) ) ), channel )
+						
+
+						
+						#self.layers[layer].set_regular_activations( sigmoid( computed_activations[channel] ), channel )
+						
 
 		return self.layers[layer].get_regular_activations()
 
@@ -331,7 +351,13 @@ class ConvolutionalNetwork:
 								regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
 									np.sum( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height() , self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 									col : col + self.layers[layer].get_rfs() ] ), node_errors[layer][channel][row * self.layers[layer].get_width() + col ] )
+					bias_weight_gradients[layer][channel] = np.transpose( node_errors[layer][channel] )
 					
+					if ( bias_weight_gradients[layer][channel].shape != self.layers[layer].get_bias_weight_changes( channel ).shape ):
+						raise Exception( "Mismatch")
+					self.layers[layer].set_bias_weight_changes( self.layers[layer].get_bias_weight_changes( channel ) + 
+						bias_weight_gradients[layer][channel], channel )
+
 				else:
 					if isinstance( self.layers[layer], InputLayer ):
 						pass
@@ -442,7 +468,13 @@ class ConvolutionalNetwork:
 											self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 										col : col + self.layers[layer].get_rfs() ] ),
 											node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )
-				
+						bias_weight_gradients[layer][channel] = np.transpose( node_errors[layer][channel] )
+						
+						if ( bias_weight_gradients[layer][channel].shape != self.layers[layer].get_bias_weight_changes( channel ).shape ):
+							raise Exception( "Mismatch")
+						self.layers[layer].set_bias_weight_changes( self.layers[layer].get_bias_weight_changes( channel ) + 
+							bias_weight_gradients[layer][channel], channel )
+			
 							
 
 					elif isinstance( self.layers[layer], MaxPoolingLayer ):
@@ -541,7 +573,13 @@ class ConvolutionalNetwork:
 											self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 										col : col + self.layers[layer].get_rfs() ] ),
 											node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )
-							
+						bias_weight_gradients[layer][channel] = np.transpose( node_errors[layer][channel] )
+
+						if ( bias_weight_gradients[layer][channel].shape != self.layers[layer].get_bias_weight_changes( channel ).shape ):
+							raise Exception( "Mismatch")
+						self.layers[layer].set_bias_weight_changes( self.layers[layer].get_bias_weight_changes( channel ) + 
+							bias_weight_gradients[layer][channel], channel )
+
 
 
 	
@@ -643,7 +681,13 @@ class ConvolutionalNetwork:
 											self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 										col : col + self.layers[layer].get_rfs() ] ),
 											node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )
-							
+						bias_weight_gradients[layer][channel] = np.transpose( node_errors[layer][channel] )
+					
+						if ( bias_weight_gradients[layer][channel].shape != self.layers[layer].get_bias_weight_changes( channel ).shape ):
+							raise Exception( "Mismatch")
+						self.layers[layer].set_bias_weight_changes( self.layers[layer].get_bias_weight_changes( channel ) + 
+							bias_weight_gradients[layer][channel], channel )
+
 
 
 					elif isinstance( self.layers[layer], MeanPoolingLayer ):
@@ -743,7 +787,14 @@ class ConvolutionalNetwork:
 											self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 										col : col + self.layers[layer].get_rfs() ] ),
 											node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )
-							
+						bias_weight_gradients[layer][channel] = np.transpose( node_errors[layer][channel] )
+				
+						if ( bias_weight_gradients[layer][channel].shape != self.layers[layer].get_bias_weight_changes( channel ).shape ):
+							raise Exception( "Mismatch")
+						self.layers[layer].set_bias_weight_changes( self.layers[layer].get_bias_weight_changes( channel ) + 
+							bias_weight_gradients[layer][channel], channel )
+
+						
 
 										
 
@@ -763,6 +814,9 @@ class ConvolutionalNetwork:
 
 				self.layers[layer].set_regular_weight_changes( 
 					self.layers[layer].get_regular_weight_changes( channel ) + np.transpose( regular_weight_gradients[layer][channel] ).flatten(), channel )
+				
+				
+
 
 		
 	def train( self, inputs, target_outputs, epochs, batch_size, channels, weight_penalty ):
@@ -791,6 +845,15 @@ class ConvolutionalNetwork:
 						self.learning_rate * ( 1.0/int( np.ceil( float( np.shape( inputs )[0] )/ batch_size ) ) ) * 
 						self.layers[l].get_regular_weight_changes( c ) + 
 						weight_penalty * self.layers[l].get_regular_weights( c ) ), c )
+					
+					self.layers[l].set_bias_weights( ( self.layers[l].get_bias_weights( c ) - 
+						self.learning_rate * ( 1.0/int( np.ceil( float( np.shape( inputs )[0] )/ batch_size ) ) ) * 
+						self.layers[l].get_bias_weight_changes( c ) ), c )
+					print( "denominator: " + str( int( np.ceil( float( np.shape( inputs )[0] )/ batch_size ) ) ) )
+					print( "bias_weight_changes before: " + str( self.layers[l].get_bias_weight_changes( c ) ))
+					self.layers[l].set_bias_weight_changes( np.asmatrix( np.zeros( ( 1, self.layers[l].get_bias_weight_changes( c ).size ) ) ), c )
+					self.layers[l].set_regular_weight_changes( np.asmatrix( np.zeros( ( 1, self.layers[l].get_regular_weight_changes( c ).size ) ) ), c )
+					print( "bias_weight_changes after: " + str( self.layers[l].get_bias_weight_changes( c ) ))
 
 
 
@@ -833,8 +896,6 @@ class ConvolutionalNetwork:
 
 
 if __name__ == "__main__":
-
-	
 	# 'input_layer_width'			 : int
 	# 'input_layer_height' 			 : int
 	# 'proposed_layer_types_and_rfs' : dict of dicts, where the key of the 
@@ -849,15 +910,17 @@ if __name__ == "__main__":
 	"""
 	
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
-	1 : { ConvolutionalType() : 5 }, 2 : { MeanPoolingType() : 2 } }
+	1 : { ConvolutionalType() : 2 }, 2 : { MeanPoolingType(): 2 },
+	1 : { ConvolutionalType() : 2 }, 2 : { MeanPoolingType(): 2 },
+	1 : { ConvolutionalType() : 2 }, 2 : { MeanPoolingType(): 2 } }
 	
 	input_layer_width = 28
 	input_layer_height = 28
 	instances_per_batch = 2
 	out_dimensionality = 10
 	data_instances = 100
-	regular_weight_init_range = [0.0,0.1]
-	bias_weight_init_range = [0.0,0.1]
+	regular_weight_init_range = [0.0,0.05]
+	bias_weight_init_range = [0.0,0.05]
 	channels = 1
 
 	# returns a one-dimensional key-value dict. 
@@ -867,14 +930,14 @@ if __name__ == "__main__":
 		regular_weight_init_range, bias_weight_init_range, channels )
 	layer_configurations.append( LayerConstraints( 1, 1, 
 		out_dimensionality, "Classifier Layer", 
-		1, [0.0,0.1], [0.0,0.1], FullyConnectedType(), FullyConnectedType() ) )
+		1, [0.0,0.05], [0.0,0.05], FullyConnectedType(), FullyConnectedType() ) )
 
 
 	network = ConvolutionalNetwork( layer_configurations, 3.0, "Test Conv. S.N.N." )
 	network.assemble_network();
 	
 	batch_size = 2;
-	epochs = 10;
+	epochs = 3;
 
 
 
@@ -932,16 +995,22 @@ network.train( inputs, outputs, epochs, batch_size, 1, 0.1 )
 
 print( "target: " + str( np.transpose( outputs[0] ) ) )
 print( "hypothesis: " + str( network.hypothesis( np.transpose( inputs[0]) ) ) )
+print( "np.transpose( inputs[0]): " + str( np.transpose( inputs[0]) ) )
 print( "\n")
-print( "target: " + str( np.transpose( outputs[1] ) ) )
-print( "hypothesis: " + str( network.hypothesis( np.transpose( inputs[1]) ) ) )
+print( "target: " + str( np.transpose( outputs[7] ) ) )
+print( "hypothesis: " + str( network.hypothesis( np.transpose( inputs[7]) ) ) )
+print( "np.transpose( inputs[7]): " + str( np.transpose( inputs[7]) ) )
 print( "\n")
-print( "target: " + str( np.transpose( outputs[2] ) ) )
-print( "hypothesis: " + str( network.hypothesis( np.transpose( inputs[2]) ) ) )
+print( "target: " + str( np.transpose( outputs[25] ) ) )
+print( "hypothesis: " + str( network.hypothesis( np.transpose( inputs[25]) ) ) )
+print( "np.transpose( inputs[25]): " + str( np.transpose( inputs[25]) ) )
 print( "\n")
-print( "target: " + str( np.transpose( outputs[3] ) ) )
-print( "hypothesis: " + str( network.hypothesis( np.transpose( inputs[3]) ) ) )
+print( "target: " + str( np.transpose( outputs[37] ) ) )
+print( "hypothesis: " + str( network.hypothesis( np.transpose( inputs[37]) ) ) )
+print( "np.transpose( inputs[37]): " + str( np.transpose( inputs[37]) ) )
 print( "\n")
+
+
 """
 
 for layer in range( len( network.layers ) ):

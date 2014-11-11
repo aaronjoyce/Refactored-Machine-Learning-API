@@ -148,7 +148,7 @@ class Layer( object ):
 		return self.regular_weight_changes[ channel ].get_edges()
 
 	def get_bias_weight_changes( self, channel ):
-		return self.bias_weight_changes[ channel ]
+		return self.bias_weight_changes[ channel ].get_edges()
 
 	def set_regular_weight_changes( self, changes, channel ):
 		self.regular_weight_changes[channel].set_edges( changes )
@@ -258,7 +258,7 @@ class FullyConnectedLayer( Layer ):
 				self.bias_weights.append( EdgeGroup( self.bias_weight_init_range, 
 					self.DEFAULT_X_DIMENSION, self.layer_width * self.layer_height ) )
 				self.bias_weights[ len( self.bias_weights ) - 1 ].initialise()
-				self.bias_weight_changes.append( EdgeGroup( self.bias_weight_init_range, 
+				self.bias_weight_changes.append( EdgeGroup( [0,0], 
 					self.DEFAULT_X_DIMENSION, self.layer_width * self.layer_height ) )
 				self.bias_weight_changes[ len( self.bias_weight_changes ) - 1 ].initialise()
 		print( "regular weights within assemble(): " + str( self.regular_weights[0].get_edges() ) )

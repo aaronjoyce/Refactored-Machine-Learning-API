@@ -795,9 +795,7 @@ if __name__ == "__main__":
 	
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
 	1 : { ConvolutionalType() : 5 }, 2 : { MaxPoolingType() : 2 }, 
-	3 : { ConvolutionalType() : 5 }, 4 : { MaxPoolingType() : 2 }, 
-	5 : { ConvolutionalType() : 5 }, 6 : { MaxPoolingType() : 2 }, 
-	7 : { ConvolutionalType() : 5 }, 8 : { MaxPoolingType() : 2 } }
+	3 : { ConvolutionalType() : 5 }, 4 : { MaxPoolingType() : 2 } }
 	
 	input_layer_width = 28
 	input_layer_height = 28
