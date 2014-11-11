@@ -32,6 +32,7 @@ class Layer( object ):
 
 	def assemble_layer( self ):
 		for channel in range( self.channels ):
+			# need to cater for non-shared weights; i.e., fcns
 			self.regular_weights.append( EdgeGroup( self.regular_weight_init_range, 
 				self.layer_width * self.layer_height, self.DEFAULT_Y_DIMENSION ) )
 			self.regular_weights[ len( self.regular_weights ) - 1 ].initialise()
@@ -223,19 +224,46 @@ class MeanPoolingLayer(PoolingLayer):
 		super(MeanPoolingLayer, self ).__init__( identity, layer_width, 
 			layer_height, channels, rfs, bias_nodes, regular_weight_init_range, 
 			bias_weight_init_range, input_width, input_height, biases )
+"""
+def __init__(self, identity, input_width, input_height, 
+		layer_width, layer_height, channels, rfs, bias_nodes, regular_weight_init_range, 
+		bias_weight_init_range = None, biases = True )
+"""
 
-class FullyConnectedLayer(Layer):
-	"""docstring for FullyConnectedLayer"""
-	def __init__(self, identity, layer_width, layer_height, channels, rfs, bias_nodes,
-		regular_weight_init_range, bias_weight_init_range, 
-		input_width, input_height, biases = True ):
-		super(FullyConnectedLayer, self).__init__( identity, input_width, 
-			input_height, layer_width, layer_height, channels, rfs, bias_nodes, regular_weight_init_range, 
-			bias_weight_init_range, biases )
-	"""
+
+class FullyConnectedLayer( Layer ):
+	def __init__(self, identity,
+		layer_width, layer_height, channels, rfs, bias_nodes, regular_weight_init_range, 
+		bias_weight_init_range,  input_width, input_height, biases = True ):
+		super( FullyConnectedLayer, self ).__init__( identity, input_width, input_height, 
+			layer_width, layer_height, channels, rfs, bias_nodes, 
+			regular_weight_init_range, bias_weight_init_range )
+
 	def assemble_layer( self ):
-		pass
-	"""
+		print( "input_width: " + str( self.input_width ) )
+		print( "input_height: " + str( self.input_height ) )
+		print( "layer_width: " + str( self.layer_width ) )
+		print( "layer_height: " + str( self.layer_height ) )
+		print( "FCN-specific assemble() invoked" )
+		for channel in range( self.channels ):
+			self.regular_weights.append( EdgeGroup( self.regular_weight_init_range, 
+				self.layer_width * self.layer_height * self.input_width * self.input_height, 
+				self.DEFAULT_Y_DIMENSION ) )
+			self.regular_weight_changes.append( EdgeGroup( [0.0,0.0], 
+				self.layer_width * self.layer_height * self.input_width * self.input_height, 
+				self.DEFAULT_Y_DIMENSION ) )
+			self.regular_weights[ len( self.regular_weights ) - 1 ].initialise()
+			self.regular_weight_changes[ len( self.regular_weight_changes )  - 1 ].initialise()
+			if ( self.biases ):
+				self.bias_weights.append( EdgeGroup( self.bias_weight_init_range, 
+					self.DEFAULT_X_DIMENSION, self.layer_width * self.layer_height ) )
+				self.bias_weights[ len( self.bias_weights ) - 1 ].initialise()
+				self.bias_weight_changes.append( EdgeGroup( self.bias_weight_init_range, 
+					self.DEFAULT_X_DIMENSION, self.layer_width * self.layer_height ) )
+				self.bias_weight_changes[ len( self.bias_weight_changes ) - 1 ].initialise()
+		print( "regular weights within assemble(): " + str( self.regular_weights[0].get_edges() ) )
+		print( "bias weights within assemble(): " + str( self.bias_weights[0].get_edges() ) ) 
+
 
 class OutputLayer(Layer):
 	"""docstring for OutputLayer"""

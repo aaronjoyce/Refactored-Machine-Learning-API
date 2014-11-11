@@ -43,6 +43,7 @@ class ConvolutionalNetwork:
 		self.layers = []
 
 	def assemble_network( self ):
+		print( "self.layer_constraints: " + str( self.layer_constraints ) )
 		for layer in self.layer_constraints:
 			if ( isinstance( self.layer_constraints[layer].get_super_type(), 
 				InputType ) ):
@@ -60,7 +61,7 @@ class ConvolutionalNetwork:
 					self.layer_constraints[layer].get_bias_weight_init_range(), 
 					self.layers[ len( self.layers ) - 1 ].get_width(), 
 					self.layers[ len( self.layers ) - 1 ].get_height() ) )
-			elif ( isinstance( self.layer_constraints[layer].get_super_type(), 
+			elif ( isinstance( self.layer_constraints[layer].get_sub_type(), 
 				OutputType ) ):
 				self.layers.append( FullyConnectedLayer( self.layer_constraints[layer].get_identity(), 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(),
@@ -109,6 +110,9 @@ class ConvolutionalNetwork:
 					self.layers[ len( self.layers ) - 1 ].get_height() ) ) 
 				elif ( isinstance( self.layer_constraints[layer].get_sub_type(),
 					MaxPoolingType ) ):
+					print( "layer: " + str( layer ) )
+					print( "self.layers: " + str( self.layers ) )
+					print( "len( self.layers ) - 1: " + str( len( self.layers ) - 1 ) )
 					self.layers.append( MaxPoolingLayer( self.layer_constraints[layer].get_identity() , 
 					self.layer_constraints[layer].get_width(), self.layer_constraints[layer].get_height(), 
 					self.layer_constraints[ layer ].get_channels(),
@@ -135,7 +139,6 @@ class ConvolutionalNetwork:
 	# key '0' denotes the channel 0. 
 	# The keys are of type int. 
 	def hypothesis( self, inputs ):
-		print( "self.layers: " + str( self.layers) )
 		for layer in range( len( self.layers ) ):
 			if layer == 0:
 				for channel in range( self.layers[layer].get_channels() ):
@@ -277,6 +280,7 @@ class ConvolutionalNetwork:
 
 		for layer in range( len( self.layers ) - 1, 0, -1 ):
 			for channel in range( self.layers[layer].get_channels() ):
+				print( "channel: " + str( channel ) )
 				indices = np.asmatrix( np.arange( self.layers[layer].get_width() 
 					* self.layers[layer].get_height() ).reshape(( self.layers[layer].get_height(), 
 						self.layers[layer].get_width() )) )
@@ -303,13 +307,16 @@ class ConvolutionalNetwork:
 						node_errors[ layer ][channel] = np.sum( self.compute_output_error( 
 						self.layers[layer].get_regular_activations( channel ), target_outputs ), 1 )
 
-					
+					print( "layer: " + str( layer ) )
+					print( "channel: " + str( channel ) )
+					print( "output error: " + str( node_errors[layer][channel] ) )
 					for row in range( self.layers[layer].get_height() ):
 						for col in range( self.layers[layer].get_width() ):
 							regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
 								np.sum( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height() , self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 								col : col + self.layers[layer].get_rfs() ] ), node_errors[layer][channel][row * self.layers[layer].get_width() + col ] )
 				else:
+					print( "layer after else: " + str( layer ) )
 					if isinstance( self.layers[layer], InputLayer ):
 						pass
 					elif isinstance( self.layers[layer], ConvolutionalLayer ):
@@ -336,6 +343,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[layer+1][ channel ] ))
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 
 								elif ( ( (row - (rfs - 1)) < 0 ) & ( (col - (rfs - 1)) < 0 ) ):
@@ -353,6 +362,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 
 								elif ( ( (row - (rfs - 1)) < 0 ) & ( (col - (rfs - 1)) >= 0 ) ):
@@ -370,6 +381,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 								else:
 									row_from = row - (rfs - 1) 
@@ -386,12 +399,18 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print ( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									 
 								regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
 									np.mean( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height(), 
 										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 									col : col + self.layers[layer].get_rfs() ] ),
 										node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )
+								print( "reg. activations: " + str( np.mean( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height(), 
+										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
+									col : col + self.layers[layer].get_rfs() ] ) ) )
+								print( "node errors: " + str( node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] ) )
 
 
 					elif isinstance( self.layers[layer], MaxPoolingLayer ):
@@ -416,6 +435,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 									
 								elif ( ( (row - (rfs - 1)) < 0 ) & ( (col - (rfs - 1)) < 0 ) ):
@@ -433,6 +454,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 
 								elif ( ( (row - (rfs - 1)) < 0 ) & ( (col - (rfs - 1)) >= 0 ) ):
@@ -450,6 +473,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 								else:
 									row_from = row - (rfs - 1) 
@@ -466,12 +491,18 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 								regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
 									np.mean( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height(), 
 										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 									col : col + self.layers[layer].get_rfs() ] ),
 										node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )
+								print( "reg. activations: " + str( np.mean( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height(), 
+										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
+									col : col + self.layers[layer].get_rfs() ] ) ) )
+								print( "node errors: " + str( node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] ) )
 						
 	
 					elif isinstance( self.layers[layer], MinPoolingLayer ):
@@ -497,6 +528,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ]))
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 
 								elif ( ( (row - (rfs - 1)) < 0 ) & ( (col - (rfs - 1)) < 0 ) ):
@@ -514,6 +547,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 
 								elif ( ( (row - (rfs - 1)) < 0 ) & ( (col - (rfs - 1)) >= 0 ) ):
@@ -531,6 +566,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 								else:
 									row_from = row - (rfs - 1) 
@@ -547,12 +584,18 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 									
 								regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
 									np.mean( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height(), 
 										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 									col : col + self.layers[layer].get_rfs() ] ),
 										node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )
+								print( "reg. activations: " + str( np.mean( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height(), 
+										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
+									col : col + self.layers[layer].get_rfs() ] ) ) )
+								print ( "node errors: " + str( node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] ) )
 
 
 					elif isinstance( self.layers[layer], MeanPoolingLayer ):
@@ -578,6 +621,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 								
 									
 								elif ( ( (row - (rfs - 1)) < 0 ) & ( (col - (rfs - 1)) < 0 ) ):
@@ -595,6 +640,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str( node_errors[ layer + 1 ][ channel ] ))
+									print( "layer + 1: " + str( layer + 1 ) )
 						
 
 								elif ( ( (row - (rfs - 1)) < 0 ) & ( (col - (rfs - 1)) >= 0 ) ):
@@ -612,6 +659,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computation: " + str(  node_errors[ layer + 1 ][ channel ] ))
+									print( "layer + 1: " + str( layer + 1 ) )
 							
 								else:
 									row_from = row - (rfs - 1) 
@@ -628,6 +677,8 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
+									print( "input errors to hidden error computations: " + str( node_errors[ layer + 1 ][ channel ] ) )
+									print( "layer + 1: " + str( layer + 1 ) )
 								
 						
 								regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
@@ -635,15 +686,21 @@ class ConvolutionalNetwork:
 										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 									col : col + self.layers[layer].get_rfs() ] ),
 										node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )	
+								print( "reg. activations input: " + str( np.mean( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height(), 
+										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
+									col : col + self.layers[layer].get_rfs() ] ) ) )
+								print( "node error activations: " + str( node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] ) )
 
 									
 
 			
 					elif isinstance( self.layers[layer], FullyConnectedLayer ):
-						pass
+						pass # must fill in
 					elif isinstance( self.layers[layer], OutputLayer ):
-						pass
-		
+						pass # must fill-in this 
+					else:
+						raise Exception( "This should not be raised" )
+				print( "regular weight gradients: " + str( regular_weight_gradients[layer][channel] ) )
 			
 				if ( (layer+1) <= ( len( self.layers ) - 1 ) ):
 					bias_weight_gradients[layer][channel] = np.transpose( self.compute_bias_weight_gradients( node_errors[layer+1][channel] ) )
@@ -667,6 +724,7 @@ class ConvolutionalNetwork:
 
 
 		for epoch in range( epochs ):
+			print( "epoch: " + str( epoch ) )
 			for index in range( int( np.ceil( float( np.shape( inputs )[0] )/ batch_size ) ) ):
 				input_subset = np.transpose( inputs[ index * batch_size : (index + 1 )*batch_size ] )
 				output_subset = np.transpose( target_outputs[ index * batch_size : ( index + 1 ) * batch_size ] ) 
@@ -690,6 +748,9 @@ class ConvolutionalNetwork:
 	# @param: errors
 	# @param: weights
 	def compute_hidden_error( self, activations, errors, weights ):
+		print( "hidden error activations: " + str( activations ) )
+		print( "hidden error errors: " + str( errors ) )
+		print( "hidden error weights: " + str( weights ) )
 		return np.multiply( np.dot( weights, errors ), 
 			np.multiply( activations, ( 1 - activations ) ) )
 
@@ -702,6 +763,7 @@ class ConvolutionalNetwork:
 		return np.multiply( - ( target - hypothesis ), np.multiply( hypothesis, ( 1 - hypothesis ) ) )
 
 	def compute_regular_weight_gradients( self, activations, errors ):
+		print( "weight gradients returned: " + str( np.multiply( errors, activations ) ) )
 		return np.multiply( errors, activations )
 		
 
@@ -732,15 +794,16 @@ if __name__ == "__main__":
 	"""
 	
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
-	1 : { ConvolutionalType() : 7 }, 2 : { MinPoolingType() : 6 }, 
-	3 : { ConvolutionalType() : 6 }, 4 : { MaxPoolingType() : 6 }, 
-	5: { ConvolutionalType() : 4 }, 6 : { FullyConnectedType() : 1} }
+	1 : { ConvolutionalType() : 5 }, 2 : { MaxPoolingType() : 2 }, 
+	3 : { ConvolutionalType() : 5 }, 4 : { MaxPoolingType() : 2 }, 
+	5 : { ConvolutionalType() : 5 }, 6 : { MaxPoolingType() : 2 }, 
+	7 : { ConvolutionalType() : 5 }, 8 : { MaxPoolingType() : 2 } }
 	
 	input_layer_width = 28
 	input_layer_height = 28
 	#instances_per_batch = 2
 	out_dimensionality = 10
-	data_instances = 5000
+	data_instances = 4
 	regular_weight_init_range = [0.1,0.2]
 	bias_weight_init_range = [0.1,0.2]
 	channels = 1
@@ -750,35 +813,29 @@ if __name__ == "__main__":
 	layer_configurations = generate_layer_configurations( 
 		input_layer_width, input_layer_height, proposed_layer_types_and_rfs,
 		regular_weight_init_range, bias_weight_init_range, channels )
+	layer_configurations[ 'layer 9' ] = LayerConstraints( 1, 1, 10, "Classifier Layer", 
+		1, [0.1,0.2], [0.1,0.2], FullyConnectedType(), FullyConnectedType() )
+	print( "len( layer_configurations ): " + str( layer_configurations ) )
+	for key in layer_configurations:
+		print( "key: " + str( key ) ) 
+		print( "layer_constraints.super_type: " + str( layer_configurations[key].get_super_type() ) )
+		print( "layer_constraints.sub_type: " + str( layer_configurations[key].get_sub_type() ) )
+		print( "\n" )
 
-	print( "layer_configurations['layer 1'].get_sub_type(): " + str( layer_configurations['layer 1'].get_sub_type() ) )
-	print( "layer_configurations['layer 1'].get_super_type(): " + str( layer_configurations['layer 1'].get_super_type() ) )
-	print( "\n\n" )
-	print( "layer_configurations['layer 2'].get_sub_type(): " + str( layer_configurations['layer 2'].get_sub_type() ) )
-	print( "layer_configurations['layer 2'].get_super_type(): " + str( layer_configurations['layer 2'].get_super_type() ) )
-	print( "\n\n" )
-	print( "layer_configurations['layer 3'].get_sub_type(): " + str( layer_configurations['layer 3'].get_sub_type() ) )
-	print( "layer_configurations['layer 3'].get_super_type(): " + str( layer_configurations['layer 3'].get_super_type() ) )
-	print( "\n\n" )
-	print( "layer_configurations['layer 4'].get_sub_type(): " + str( layer_configurations['layer 4'].get_sub_type() ) ) 
-	print( "layer_configurations['layer 4'].get_super_type(): " + str( layer_configurations['layer 4'].get_super_type() ) )
-	print( "\n\n" )
-	print( "layer_configurations['layer 5'].get_sub_type(): " + str( layer_configurations['layer 5'].get_sub_type() ) ) 
-	print( "layer_configurations['layer 5'].get_super_type(): " + str( layer_configurations['layer 5'].get_super_type() ) )
-	print( "\n\n" )
-	print( "layer_configurations['layer 6'].get_sub_type(): " + str( layer_configurations['layer 6'].get_sub_type() ) ) 
-	print( "layer_configurations['layer 6'].get_super_type(): " + str( layer_configurations['layer 6'].get_super_type() ) )
-
-	layer_configurations[ 'layer 7' ] = LayerConstraints( 1, 1, 10, "Classifier Layer", 
-		1, [0.1,0.2], [0.1,0.2], FullyConnectedType() )
-
-	print( "layer_configurations: " + str( layer_configurations ) )
 	network = ConvolutionalNetwork( layer_configurations, 1.0, "Test Conv. S.N.N." )
 	network.assemble_network();
+"""
+	batch_size = 2;
+	epochs = 2;
 
-	batch_size = 5;
-	epochs = 10;
+	for layer in range( len( network.layers ) ):
+		print( "layer: " + str( layer ) )
+		print( "layers[layer]: " + str( network.layers[layer] ) )
+		print( "layers[layer].get_width(): " + str( network.layers[layer].get_width() ) )
+		print( "layers[layer].get_height(): " + str( network.layers[layer].get_height() ) )
 
+"""
+"""
 	#number_of_instances = 20
     #output_dimensionality = 10
 
@@ -794,10 +851,28 @@ for instance in range( data_instances ):
 network.train( inputs, outputs, epochs, batch_size )
 
 print( "input: " + str( np.asmatrix( load_data_wrapper()[0][data_instances][0])))
-print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][data_instances][0] ) ) ) )
-print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][data_instances][1] ) ) )
+print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][0][0] ) ) ) )
+print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][0][1] ) ) )
+print( "\n\n" )
+print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][1][0] ) ) ) )
+print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][1][1] ) ) )
+print( "\n\n" )
+print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][2][0] ) ) ) )
+print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][2][1] ) ) )
+print( "\n\n" )
+print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][3][0] ) ) ) )
+print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][3][1] ) ) )
+print( "\n\n" )
+print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][4][0] ) ) ) )
+print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][4][1] ) ) )
+print( "\n\n" )
+print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][5][0] ) ) ) )
+print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][5][1] ) ) )
+print( "\n\n" )
+print( "hypothesis: " + str( network.hypothesis( np.asmatrix( load_data_wrapper()[0][6][0] ) ) ) )
+print( "target output: " + str( np.asmatrix( load_data_wrapper()[0][6][1] ) ) )
 	
-"""
+#
 for layer in range( len( network.layers ) ):
 	for channel in range( network.layers[layer].get_channels() ):
 		print( "layer: " + str( layer ) )
