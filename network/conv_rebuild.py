@@ -265,8 +265,6 @@ class ConvolutionalNetwork:
 		
 			bias_weight_gradients[layer] = {}
 
-		
-
 		for layer in range( len( self.layers ) - 1, 0, -1 ):
 			for channel in range( self.layers[layer].get_channels() ):
 				indices = np.asmatrix( np.arange( self.layers[layer].get_width() 
@@ -295,6 +293,8 @@ class ConvolutionalNetwork:
 							regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
 								np.sum( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height() , self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 								col : col + self.layers[layer].get_rfs() ] ), node_errors[layer][channel][row * self.layers[layer].get_width() + col ] )
+
+
 
 				else:
 					if isinstance( self.layers[layer], InputLayer ):
@@ -617,15 +617,12 @@ class ConvolutionalNetwork:
 										node_errors[ layer + 1 ][ channel ].reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ), np.mean( self.layers[layer+1].get_regular_weights( channel ).reshape( ( next_layer_height, next_layer_width ) )[ row_from : row_to,
 											col_from : col_to ] ) )
-								
 						
 								regular_weight_gradients[layer][channel][ row * self.layers[layer].get_width() + col ] = self.compute_regular_weight_gradients( 
 									np.mean( np.sum( self.layers[layer-1].get_regular_activations( channel ), 1 ).reshape( ( self.layers[layer-1].get_height(), 
 										self.layers[layer-1].get_width() ) )[ row : row + self.layers[layer].get_rfs(), 
 									col : col + self.layers[layer].get_rfs() ] ),
 										node_errors[layer][channel][ row * self.layers[layer].get_width() + col ] )		
-
-									
 
 			
 					elif isinstance( self.layers[layer], FullyConnectedLayer ):
@@ -692,10 +689,10 @@ if __name__ == "__main__":
 	# denotes the proposed receptive field size, passed as an int-type value. 
 
 	proposed_layer_types_and_rfs = { 0 : { InputType() : 0 }, 
-		1 : { ConvolutionalType() : 2 }, 2 : { MeanPoolingType() : 4 }, 
-		3 : { ConvolutionalType() : 2 } }
-	input_layer_width = 9
-	input_layer_height = 9
+		1 : { ConvolutionalType() : 2 }, 2 : { MeanPoolingType() : 2 }, 
+		3 : { ConvolutionalType() : 1 } }
+	input_layer_width = 3
+	input_layer_height = 3
 	instances_per_batch = 3
 	regular_weight_init_range = [0.1,0.2]
 	bias_weight_init_range = [0.1,0.2]
@@ -709,23 +706,30 @@ if __name__ == "__main__":
 	network = ConvolutionalNetwork( layer_configurations, 0.1, "Test Conv. S.N.N." )
 	network.assemble_network()
 
-	inputs = np.empty(( 
+	inputs = np.ones(( 
 		input_layer_width * input_layer_height * channels ) * instances_per_batch )
 	inputs = np.asmatrix( inputs.reshape( input_layer_width * input_layer_height * channels, instances_per_batch ) )
 	targets = np.asmatrix( np.ones( (layer_configurations['layer 3'].get_height() * layer_configurations[ 'layer 3' ].get_width(), 
 		instances_per_batch ) ) )
+	inputs = inputs / 20.0
+
+	print( "inputs: " + str( inputs ) )
+
 
 	for i in range( input_layer_width * input_layer_height * channels ):
 		inputs[i].fill( i + 1 )
 	print( "hypothesis: " + str( network.hypothesis( inputs ) ) )
 	network.back_propagate( inputs, targets )
 
+	for layer in range(1, len( network.get_layers() ) ):
+		print( "network.layers[layer].get_regular_weights(): " + 
+			str( network.layers[layer].get_regular_weights(0) ) )
 
-	
+	"""
 	for layer in range( 1, len( network.get_layers() ) ):
 		print( "network.layers[layer].get_regular_weight_changes(0): " + str( 
 			network.layers[layer].get_regular_weight_changes(0) ) )
-	
+	"""
 
 	
 	

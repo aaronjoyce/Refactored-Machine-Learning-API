@@ -918,7 +918,7 @@ if __name__ == "__main__":
 	input_layer_height = 28
 	instances_per_batch = 2
 	out_dimensionality = 10
-	data_instances = 100
+	data_instances = 200
 	regular_weight_init_range = [0.0,0.05]
 	bias_weight_init_range = [0.0,0.05]
 	channels = 1
@@ -936,8 +936,8 @@ if __name__ == "__main__":
 	network = ConvolutionalNetwork( layer_configurations, 3.0, "Test Conv. S.N.N." )
 	network.assemble_network();
 	
-	batch_size = 2;
-	epochs = 3;
+	batch_size = 1;
+	epochs = 5;
 
 
 

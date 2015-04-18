@@ -224,11 +224,6 @@ class Network:
 				self.layers[layer].get_all_bias_weight_changes() +
 				 np.transpose( np.matrix(bias_weight_gradients[layer]) ) )
 			layer -= 1
-
-		print "hypothesis: " + str( self.hypothesis( inputs ) )
-		print "target: " + str( target_output )
-		print( "weight gradients: " + str( weight_gradients ) )
-		  		
 			
 
 # 'input_dimensionality': a 2-element, one-dimensional array. First
