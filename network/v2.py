@@ -850,22 +850,3 @@ if __name__ == "__main__":
 			print "bias weight changes (l0): " + str( np.shape( network_object.layers[0].get_all_bias_weight_changes() ) )
 			"""
 			
-
-"""
-Development notes:
-
-- Weight gradients are temporal
-"""
-
-
-	# High-level description of what it is the function does. 
-	# Requires
-	# Effects
-	
-
-
-#Your Gadget Insurance Validation Certificate number: - BIGIIAJ/20141
-
-# Attributes of a Node:
-# - Activation
-# - Error
